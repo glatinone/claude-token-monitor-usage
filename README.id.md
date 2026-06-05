@@ -11,6 +11,9 @@
 ---
 
 ## 📸 Tampilan Antarmuka
+
+![Tampilan Claude Token Monitor](assets/hud_preview.png)
+
 * Widget melayang transparan modern yang selalu di atas (`always-on-top`).
 * Kode warna dinamis: **Hijau** (kuota aman), **Kuning** (mulai menipis), dan **Merah** (hampir habis).
 * Mode Ringkas (Collapse): Cukup klik `−` untuk menyembunyikan detail widget ke bentuk pill kecil.

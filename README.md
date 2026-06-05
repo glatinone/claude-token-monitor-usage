@@ -11,7 +11,10 @@
 ---
 
 ## 📸 Interface Preview
-* Sleek, always-on-top transparent desktop card.
+
+![Claude Token Monitor Desktop HUD](assets/hud_preview.png)
+
+* Sleek, always-on-top transparent desktop HUD.
 * Dynamic color states: **Green** (plenty left), **Amber** (getting low), and **Red** (almost empty).
 * Collapse mode: Double-click or click `−` to collapse the HUD into a tiny title pill.
 * System tray integration with quick controls (Setup Key, Sync Now, Show/Hide).
