@@ -77,7 +77,7 @@ def set_session_key(key: str) -> None:
 def _parse_usage(raw, org_name: str) -> dict | None:
     """
     Normalise any known Claude.ai usage API shape.
-    percentage = % REMAINING (100=fresh, 0=exhausted) – mirrors background.js.
+    percentage = % USED (0=fresh, 100=exhausted).
     """
     percentage = None
     used_count = 0
@@ -97,20 +97,24 @@ def _parse_usage(raw, org_name: str) -> dict | None:
             if rem is not None and lim is not None:
                 limit      = int(lim)
                 used_count = limit - int(rem)
-                percentage = (int(rem) / limit * 100) if limit > 0 else 0.0
+                percentage = (used_count / limit * 100) if limit > 0 else 0.0
             elif util is not None:
-                percentage = 100.0 - float(util)
+                percentage = float(util)
             elif used_pct is not None:
-                percentage = 100.0 - float(used_pct)
+                percentage = float(used_pct)
             elif rem_pct is not None:
-                percentage = float(rem_pct)
+                percentage = 100.0 - float(rem_pct)
 
         elif "percentage" in raw:
-            percentage = float(raw["percentage"])
             limit      = int(raw.get("limit", 0))
             used_count = int(raw.get("used_count", 0))
             if used_count == 0 and "remaining" in raw and limit > 0:
                 used_count = limit - int(raw["remaining"])
+            
+            if limit > 0:
+                percentage = (used_count / limit * 100)
+            else:
+                percentage = float(raw["percentage"])
             reset_at   = raw.get("resets_at", "") or raw.get("reset_at", "")
 
     elif isinstance(raw, list):

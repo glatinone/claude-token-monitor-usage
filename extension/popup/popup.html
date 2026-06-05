@@ -216,6 +216,14 @@
       color: var(--muted);
       font-weight: 600;
     }
+    .disclaimer {
+      font-size: 8px;
+      color: var(--muted);
+      text-align: center;
+      padding: 6px 12px 10px;
+      opacity: 0.8;
+      border-top: 1px solid rgba(255,255,255,0.03);
+    }
   </style>
 </head>
 <body>
@@ -266,6 +274,10 @@
   <div class="footer">
     <span class="footer-label">Last synced</span>
     <span id="synced-val">Never</span>
+  </div>
+
+  <div class="disclaimer">
+    Unofficial client. Not affiliated with Anthropic.
   </div>
 
   <script src="popup.js"></script>

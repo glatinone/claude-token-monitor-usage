@@ -29,8 +29,8 @@ RED     = "#F87171"
 
 
 def _col(pct: float) -> str:
-    if pct >= 50: return GREEN
-    if pct >= 20: return AMBER
+    if pct < 50: return GREEN
+    if pct < 80: return AMBER
     return RED
 
 
@@ -229,9 +229,9 @@ class TokenMonitorWidget:
                 c.create_arc(cx-r, cy-r, cx+r, cy+r,
                              start=90, extent=-ext,
                              outline=color, width=4, style="arc")
-            c.create_text(cx, cy-6, text=str(int(round(pct))),
-                          fill=color, font=("Segoe UI", 16, "bold"), anchor="center")
-            c.create_text(cx, cy+10, text="LEFT",
+            c.create_text(cx, cy-6, text=f"{int(round(pct))}%",
+                          fill=color, font=("Segoe UI", 15, "bold"), anchor="center")
+            c.create_text(cx, cy+10, text="USED",
                           fill=MUTED, font=("Segoe UI", 7, "bold"), anchor="center")
         except Exception as e:
             logger.debug(f"Arc draw: {e}")
@@ -256,7 +256,7 @@ class TokenMonitorWidget:
             if limit > 0:
                 self._msgs_frame.pack(fill="x", pady=(0, 2))
                 rem_msgs = max(0, limit - used)
-                self._msgs_val.configure(text=f"{rem_msgs} / {limit}", text_color=color)
+                self._msgs_val.configure(text=f"{rem_msgs} / {limit} msgs", text_color=color)
 
             self._reset_frame.pack(fill="x", pady=(0, 2))
             
@@ -375,6 +375,7 @@ class TokenMonitorWidget:
 
         current = get_saved_session_key() or ""
         prompt = (
+            "Disclaimer: This app is unofficial and not affiliated with Anthropic.\n\n"
             "Paste your Claude.ai sessionKey cookie below.\n\n"
             "How to get it:\n"
             "  1. Open claude.ai in your browser\n"

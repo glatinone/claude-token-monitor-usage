@@ -95,8 +95,12 @@ def main():
     def _on_web_push(web_stats=None, **_):
         if web_stats and widget:
             # Adapt storage format → UsageData format
+            # web_stats["percentage"] stores remaining percentage for legacy reasons,
+            # so we convert it to USED percentage for the widget.
+            rem_pct = float(web_stats.get("percentage", 100.0))
+            used_pct = 100.0 - rem_pct
             payload = {
-                "percentage": web_stats.get("percentage", 0),
+                "percentage":  used_pct,
                 "used_count":  int(web_stats.get("limit", 0) - web_stats.get("remaining", 0)),
                 "limit":       int(web_stats.get("limit", 0)),
                 "reset_at":    web_stats.get("reset_at", ""),

@@ -120,3 +120,10 @@ Kontribusi dari komunitas sangat dihargai! Jika Anda memiliki saran perbaikan vi
 ## 📄 Lisensi
 
 Proyek ini dilisensikan di bawah Lisensi MIT - lihat berkas [LICENSE](LICENSE) untuk informasi lebih lanjut.
+
+---
+
+## ⚠️ Penyangkalan (Disclaimer)
+
+Aplikasi ini adalah alat bantu tidak resmi dan tidak berafiliasi, terkait, disahkan, didukung oleh, atau dengan cara apa pun terhubung secara resmi dengan Anthropic, PBC atau anak perusahaan serta afiliasinya. Claude, Claude Code, dan Anthropic adalah merek dagang terdaftar dari Anthropic, PBC.
+

@@ -182,7 +182,7 @@ async function syncUsage() {
  * Claude.ai has returned different shapes over time – this handles all variants.
  */
 function parseUsage(raw, orgName) {
-  // percentage = % REMAINING (100 = fresh, 0 = exhausted) — matches user preference
+  // percentage = % USED (0 = fresh, 100 = exhausted) — matches user preference
   let percentage = null;
   let used_count = 0;   // messages used (count)
   let limit = 0;        // message cap (0 = unknown)
@@ -197,23 +197,27 @@ function parseUsage(raw, orgName) {
       limit = parseFloat(fh.message_limit);
       const remaining = parseFloat(fh.remaining_messages);
       used_count = limit - remaining;
-      percentage = limit > 0 ? (remaining / limit) * 100 : 0;
+      percentage = limit > 0 ? (used_count / limit) * 100 : 0;
     } else if (fh.utilization != null) {
       // utilization IS the used percentage (0–100)
-      percentage = 100 - parseFloat(fh.utilization);
+      percentage = parseFloat(fh.utilization);
     } else if (fh.used_percentage != null) {
-      percentage = 100 - parseFloat(fh.used_percentage);
+      percentage = parseFloat(fh.used_percentage);
     } else if (fh.remaining_percentage != null) {
-      percentage = parseFloat(fh.remaining_percentage);
+      percentage = 100 - parseFloat(fh.remaining_percentage);
     }
   }
 
   // Shape B: flat { percentage, remaining, limit, resets_at }
   else if (raw?.percentage != null) {
-    percentage = parseFloat(raw.percentage);
     limit = parseFloat(raw.limit ?? 0);
     const rem = parseFloat(raw.remaining ?? 0);
     used_count = limit > 0 ? limit - rem : 0;
+    if (limit > 0) {
+      percentage = (used_count / limit) * 100;
+    } else {
+      percentage = parseFloat(raw.percentage);
+    }
     reset_at = raw.resets_at || "";
   }
 
@@ -231,8 +235,8 @@ function parseUsage(raw, orgName) {
   percentage = Math.max(0, Math.min(100, percentage));
 
   return {
-    percentage,   // % REMAINING (100 = fresh, 0 = exhausted)
-    is_remaining: true,
+    percentage,   // % USED (0 = fresh, 100 = exhausted)
+    is_used: true,
     used_count,   // messages used (count, 0 if unknown)
     limit,        // message cap (0 if unknown)
     reset_at,

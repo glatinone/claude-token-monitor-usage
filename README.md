@@ -120,3 +120,10 @@ Contributions are welcome! If you'd like to improve the UI styling, support othe
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## ⚠️ Disclaimer
+
+This is an unofficial tool and is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Anthropic, PBC or any of its subsidiaries or affiliates. Claude, Claude Code, and Anthropic are registered trademarks of Anthropic, PBC.
+

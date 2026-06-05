@@ -23,10 +23,10 @@ const STATE_KEY   = "ctm_collapsed";
 // ── Utilities ──────────────────────────────────────────────────────────────
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-// pct = % REMAINING: high remaining → green, low remaining → red
+// pct = % USED: low used → green, high used → red
 function colorForPct(pct) {
-  if (pct >= 50) return { main: "#4ade80", glow: "rgba(74,222,128,0.35)",   dim: "rgba(74,222,128,0.15)" };   // green
-  if (pct >= 20) return { main: "#fbbf24", glow: "rgba(251,191,36,0.35)",   dim: "rgba(251,191,36,0.15)" };   // amber
+  if (pct < 50) return { main: "#4ade80", glow: "rgba(74,222,128,0.35)",   dim: "rgba(74,222,128,0.15)" };   // green
+  if (pct < 80) return { main: "#fbbf24", glow: "rgba(251,191,36,0.35)",   dim: "rgba(251,191,36,0.15)" };   // amber
   return         { main: "#f87171", glow: "rgba(248,113,113,0.35)", dim: "rgba(248,113,113,0.15)" };          // red
 }
 
@@ -284,7 +284,7 @@ function buildHUD() {
           </svg>
           <div id="ctm-arc-center">
             <span id="ctm-pct-num">--</span>
-            <span id="ctm-pct-unit">left</span>
+            <span id="ctm-pct-unit">used</span>
           </div>
         </div>
 
@@ -309,7 +309,7 @@ function buildHUD() {
 
     <div id="ctm-pill">
       <span id="ctm-pill-dot"></span>
-      <span id="ctm-pill-label">-- left</span>
+      <span id="ctm-pill-label">-- used</span>
       <button id="ctm-expand-btn" title="Expand">+</button>
     </div>
   `;
@@ -331,25 +331,25 @@ function applyCollapsed(root, collapsed) {
 function renderData(root, data) {
   if (!data) return;
 
-  // percentage = % REMAINING (100 = fresh, 0 = fully exhausted)
+  // percentage = % USED (0 = fresh, 100 = fully exhausted)
   const pct = clamp(parseFloat(data.percentage ?? 0), 0, 100);
   const col = colorForPct(pct);
 
   // Remove loading state
   root.querySelector("#ctm-card").classList.remove("ctm-loading");
 
-  // Arc fills up as remaining percentage is high
+  // Arc fills up as used percentage increases
   const arcFill = root.querySelector("#ctm-arc-fill");
   const offset = CIRC - (pct / 100) * CIRC;
   arcFill.style.strokeDashoffset = offset.toFixed(2);
   arcFill.style.stroke = col.main;
   arcFill.style.filter = `drop-shadow(0 0 5px ${col.glow})`;
 
-  // Center label shows remaining %
-  root.querySelector("#ctm-pct-num").textContent = Math.round(pct);
+  // Center label shows used %
+  root.querySelector("#ctm-pct-num").textContent = Math.round(pct) + "%";
   root.querySelector("#ctm-pct-num").style.color = col.main;
 
-  // Bar fills based on remaining percentage
+  // Bar fills based on used percentage
   const bar = root.querySelector("#ctm-bar");
   bar.style.width = pct + "%";
   bar.style.background = col.main;
@@ -359,21 +359,21 @@ function renderData(root, data) {
   const msgsEl = root.querySelector("#ctm-msgs");
   if (data.limit > 0) {
     const rem_count = Math.max(0, data.limit - data.used_count);
-    msgsEl.textContent = `${Math.round(rem_count)} / ${Math.round(data.limit)}`;
+    msgsEl.textContent = `${Math.round(rem_count)} / ${Math.round(data.limit)} msgs`;
   } else {
-    msgsEl.textContent = `${pct.toFixed(1)}% left`;
+    msgsEl.textContent = `${pct.toFixed(1)}% used`;
   }
   msgsEl.style.color = col.main;
   root.querySelector("#ctm-reset").textContent = fmtReset(data.reset_at);
   if (data.org_name) root.querySelector("#ctm-org").textContent = data.org_name;
 
-  // Pill shows remaining %
+  // Pill shows used % / remaining msgs count
   root.querySelector("#ctm-pill-dot").style.background = col.main;
   root.querySelector("#ctm-pill-dot").style.boxShadow = `0 0 6px ${col.glow}`;
   root.querySelector("#ctm-pill-label").textContent =
     data.limit > 0
-      ? `${Math.round(data.limit - data.used_count)}/${Math.round(data.limit)} left`
-      : `${pct.toFixed(1)}% left`;
+      ? `${Math.round(data.limit - data.used_count)}/${Math.round(data.limit)} msgs left`
+      : `${pct.toFixed(1)}% used`;
   root.querySelector("#ctm-pill-label").style.color = col.main;
 }
 

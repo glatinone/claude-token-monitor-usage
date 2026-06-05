@@ -66,33 +66,35 @@ class _Handler(BaseHTTPRequestHandler):
         try:
             data = json.loads(raw_body)
 
-            # Accept both old schema (remaining/limit) and new (used_count/limit)
             percentage = float(data.get("percentage", 0.0))
-            is_remaining = data.get("is_remaining", False)
-            # Self-healing: if the browser extension is running the old version,
-            # it sends used percentage. We convert it to remaining percentage (100 - pct).
-            if not is_remaining:
+            is_used = data.get("is_used", False)
+            
+            # Self-healing: if the browser extension is running the old version
+            # (which sent remaining percentage as 'percentage' and had is_remaining=True,
+            # or sent remaining without flags), convert it to USED percentage.
+            if not is_used:
                 percentage = 100.0 - percentage
                 data["percentage"] = percentage
-                data["is_remaining"] = True
+                data["is_used"] = True
 
             limit      = float(data.get("limit", 0.0))
             reset_at   = data.get("reset_at", "")
             org_name   = data.get("org_name", "")
 
             # Derive remaining for StorageManager (legacy compat)
-            # percentage is now remaining percentage (100 = fresh, 0 = exhausted)
+            # percentage is now used percentage (0 = fresh, 100 = exhausted)
             if "remaining" in data:
                 remaining = float(data["remaining"])
             elif "used_count" in data:
                 remaining = limit - float(data["used_count"])
             else:
-                remaining = max(0.0, limit * (percentage / 100.0))
+                remaining = max(0.0, limit * ((100.0 - percentage) / 100.0))
 
             # Persist via storage
             if _Handler.storage_manager:
+                # storage_manager expects remaining percentage for legacy storage compat
                 web_stats = _Handler.storage_manager.update_web_usage(
-                    remaining, limit, percentage, reset_at
+                    remaining, limit, 100.0 - percentage, reset_at
                 )
                 web_stats["org_name"] = org_name
             else:

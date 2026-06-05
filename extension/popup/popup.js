@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Messages used
     if (data.limit > 0) {
-      msgsEl.textContent = `${Math.round(data.used_count)} / ${Math.round(data.limit)}`;
+      msgsEl.textContent = `${Math.round(data.used_count)} / ${Math.round(data.limit)} msgs`;
     } else {
       msgsEl.textContent = `${pct.toFixed(1)}% used`;
     }
