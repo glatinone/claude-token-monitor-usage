@@ -75,6 +75,7 @@ class SystemTrayManager:
 
         current = get_saved_session_key() or ""
         prompt = (
+            "Disclaimer: This app is unofficial and not affiliated with Anthropic.\n\n"
             "Paste your Claude.ai sessionKey cookie below.\n\n"
             "How to get it:\n"
             "  1. Open claude.ai in your browser\n"

@@ -8,6 +8,9 @@
 
 *Baca dokumentasi ini dalam [Bahasa Indonesia](README.id.md).*
 
+> [!IMPORTANT]
+> **Disclaimer:** This is an unofficial community-driven tool and is not affiliated, associated, endorsed by, or in any way officially connected with Anthropic, PBC.
+
 ---
 
 ## 📸 Interface Preview

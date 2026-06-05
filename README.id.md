@@ -8,6 +8,9 @@
 
 *Read this documentation in [English](README.md).*
 
+> [!IMPORTANT]
+> **Penyangkalan (Disclaimer):** Ini adalah aplikasi buatan komunitas yang tidak resmi dan tidak berafiliasi, terkait, disahkan, didukung oleh, atau dengan cara apa pun terhubung secara resmi dengan Anthropic, PBC.
+
 ---
 
 ## 📸 Tampilan Antarmuka

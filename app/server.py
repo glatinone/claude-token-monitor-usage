@@ -60,6 +60,15 @@ class _Handler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
+        # Security validation: Check Origin header to prevent CSRF from unauthorized origins
+        origin = self.headers.get("Origin")
+        if origin and not (origin == "https://claude.ai" or origin.startswith("chrome-extension://")):
+            logger.warning(f"Rejected POST from unauthorized origin: {origin}")
+            self.send_response(403)
+            self._cors()
+            self.end_headers()
+            return
+
         length   = int(self.headers.get("Content-Length", 0))
         raw_body = self.rfile.read(length)
 
