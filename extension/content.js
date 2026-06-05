@@ -138,10 +138,10 @@ const CSS = `
     gap: 0;
   }
   #ctm-pct-num {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 800;
     color: #fff;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.02em;
     line-height: 1;
     transition: color 0.4s;
   }

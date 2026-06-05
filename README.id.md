@@ -12,10 +12,14 @@
 
 ## 📸 Tampilan Antarmuka
 
+### Desktop Widget & Browser HUD
 ![Tampilan Claude Token Monitor](assets/hud_preview.png)
 
+### Ekstensi Chrome Pendamping
+![Claude Token Monitor Chrome Extension](assets/extension_screenshot.png)
+
 * Widget melayang transparan modern yang selalu di atas (`always-on-top`).
-* Kode warna dinamis: **Hijau** (kuota aman), **Kuning** (mulai menipis), dan **Merah** (hampir habis).
+* Kode warna dinamis: **Hijau** (pemakaian sedikit), **Kuning** (pemakaian sedang), dan **Merah** (pemakaian hampir penuh).
 * Mode Ringkas (Collapse): Cukup klik `−` untuk menyembunyikan detail widget ke bentuk pill kecil.
 * Integrasi system tray dengan kendali penuh (Setup Key, Sinkronisasi Manual, Show/Hide).
 

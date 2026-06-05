@@ -75,7 +75,7 @@ def _save_pos(x: int, y: int) -> None:
 
 
 class TokenMonitorWidget:
-    W = 230
+    W = 240
     H = 142
 
     def __init__(self, fetch_fn, on_hide_callback=None):
@@ -139,14 +139,14 @@ class TokenMonitorWidget:
         self._body.pack(fill="x", padx=12, pady=(6, 0))
 
         self._canvas = tk.Canvas(
-            self._body, width=64, height=64,
+            self._body, width=68, height=68,
             bg=SURFACE, highlightthickness=0,
         )
         self._canvas.pack(side="left")
         self._draw_arc(0.0, MUTED)
 
         stats_col = ctk.CTkFrame(self._body, fg_color="transparent")
-        stats_col.pack(side="left", padx=(10, 0), fill="both", expand=True)
+        stats_col.pack(side="left", padx=(14, 0), fill="both", expand=True)
 
         def _stat(parent, label_text):
             f = ctk.CTkFrame(parent, fg_color="transparent")
@@ -221,16 +221,16 @@ class TokenMonitorWidget:
         try:
             c = self._canvas
             c.delete("all")
-            cx = cy = 32
-            r  = 23
+            cx = cy = 34
+            r  = 24
             c.create_oval(cx-r, cy-r, cx+r, cy+r, outline=BORDER, width=4, fill="")
             if pct > 0.5:
                 ext = min(pct / 100 * 359.9, 359.9)
                 c.create_arc(cx-r, cy-r, cx+r, cy+r,
                              start=90, extent=-ext,
                              outline=color, width=4, style="arc")
-            c.create_text(cx, cy-6, text=f"{int(round(pct))}%",
-                          fill=color, font=("Segoe UI", 15, "bold"), anchor="center")
+            c.create_text(cx, cy-5, text=f"{int(round(pct))}%",
+                          fill=color, font=("Segoe UI", 12, "bold"), anchor="center")
             c.create_text(cx, cy+10, text="USED",
                           fill=MUTED, font=("Segoe UI", 7, "bold"), anchor="center")
         except Exception as e:
