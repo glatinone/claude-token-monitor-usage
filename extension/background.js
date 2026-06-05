@@ -231,7 +231,8 @@ function parseUsage(raw, orgName) {
   percentage = Math.max(0, Math.min(100, percentage));
 
   return {
-    percentage,   // % USED  (0 = fresh, 100 = exhausted)
+    percentage,   // % REMAINING (100 = fresh, 0 = exhausted)
+    is_remaining: true,
     used_count,   // messages used (count, 0 if unknown)
     limit,        // message cap (0 if unknown)
     reset_at,

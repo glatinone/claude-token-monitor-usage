@@ -68,6 +68,14 @@ class _Handler(BaseHTTPRequestHandler):
 
             # Accept both old schema (remaining/limit) and new (used_count/limit)
             percentage = float(data.get("percentage", 0.0))
+            is_remaining = data.get("is_remaining", False)
+            # Self-healing: if the browser extension is running the old version,
+            # it sends used percentage. We convert it to remaining percentage (100 - pct).
+            if not is_remaining:
+                percentage = 100.0 - percentage
+                data["percentage"] = percentage
+                data["is_remaining"] = True
+
             limit      = float(data.get("limit", 0.0))
             reset_at   = data.get("reset_at", "")
             org_name   = data.get("org_name", "")
