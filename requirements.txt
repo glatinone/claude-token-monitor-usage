@@ -1,0 +1,6 @@
+customtkinter>=5.2.2
+pystray>=0.19.5
+watchdog>=4.0.0
+pillow>=10.2.0
+requests>=2.31.0
+browser-cookie3>=0.19.1

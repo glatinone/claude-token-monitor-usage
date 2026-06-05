@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Claude Token Monitor</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0f;
+      --surface: #17171a;
+      --surface2: #1f1f24;
+      --border: rgba(255,255,255,0.07);
+      --text: #e5e7eb;
+      --muted: #6b7280;
+      --accent: #a78bfa;
+    }
+
+    body {
+      width: 260px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 12px;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #a78bfa, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .logo-text {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .logo-sub {
+      font-size: 9px;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 3px 8px 3px 6px;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4b5563;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-dot.online { background: #4ade80; box-shadow: 0 0 6px #4ade8066; }
+    .status-dot.offline { background: #f87171; }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      padding: 16px 16px 0;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+    .progress-title {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    #pct-val {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: #4ade80;
+      transition: color 0.4s;
+    }
+    #quota-bar {
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    #quota-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #4ade80, #4ade80cc);
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1), background 0.4s;
+    }
+
+    /* ── Stats grid ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 12px 16px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .stat-card.full {
+      grid-column: span 2;
+    }
+    .stat-label {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .stat-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      transition: color 0.4s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #msgs-val { color: #4ade80; }
+
+    /* ── Sync button ── */
+    .btn-wrap {
+      padding: 0 16px 14px;
+    }
+    #sync-btn {
+      width: 100%;
+      padding: 9px 14px;
+      background: linear-gradient(135deg, #a78bfa, #6366f1);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      font-family: 'Inter', system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      letter-spacing: 0.01em;
+    }
+    #sync-btn:hover { opacity: 0.88; }
+    #sync-btn:active { transform: scale(0.98); }
+    #sync-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Spinner */
+    .spinner {
+      width: 10px;
+      height: 10px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 8px 16px 10px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-label {
+      font-size: 9px;
+      color: var(--muted);
+    }
+    #synced-val {
+      font-size: 9px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🔮</div>
+      <div>
+        <div class="logo-text">Claude Monitor</div>
+        <div class="logo-sub">Usage Tracker</div>
+      </div>
+    </div>
+    <div class="status-badge">
+      <span id="status-dot" class="status-dot"></span>
+      <span id="status-text">Loading…</span>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span class="progress-title">Quota Used</span>
+      <span id="pct-val">—</span>
+    </div>
+    <div id="quota-bar">
+      <div id="quota-fill"></div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card full">
+      <div class="stat-label">Messages Used</div>
+      <div class="stat-value" id="msgs-val">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Resets In</div>
+      <div class="stat-value" id="reset-val">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Organization</div>
+      <div class="stat-value" id="org-val" style="font-size:11px">—</div>
+    </div>
+  </div>
+
+  <div class="btn-wrap">
+    <button id="sync-btn">⟳ Sync Now</button>
+  </div>
+
+  <div class="footer">
+    <span class="footer-label">Last synced</span>
+    <span id="synced-val">Never</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
