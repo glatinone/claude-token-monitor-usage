@@ -233,8 +233,7 @@ def _fetch_with_key(session_key: str, extra_cookies: dict | None = None) -> dict
             parsed = _parse_usage(r.json(), org_name)
             if parsed is None:
                 continue
-            eff = (parsed["used_count"] / parsed["limit"] * 100
-                   if parsed["limit"] > 0 else (100.0 - parsed["percentage"]))
+            eff = parsed["percentage"]
             if eff > highest:
                 highest = eff
                 best = parsed

@@ -138,10 +138,7 @@ async function syncUsage() {
         if (!parsed) continue;
 
         // Pick the org with the highest usage (most active)
-        const effectiveUsed =
-          parsed.limit > 0
-            ? (parsed.used_count / parsed.limit) * 100
-            : (100 - parsed.percentage);
+        const effectiveUsed = parsed.percentage;
 
         if (effectiveUsed > highestUsed) {
           highestUsed = effectiveUsed;
