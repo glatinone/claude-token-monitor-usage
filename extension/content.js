@@ -290,7 +290,7 @@ function buildHUD() {
 
         <div id="ctm-stats">
           <div>
-            <div class="ctm-stat-label">Msgs Left</div>
+            <div class="ctm-stat-label">Quota Left</div>
             <div class="ctm-stat-val" id="ctm-msgs">--</div>
           </div>
           <div>
@@ -355,14 +355,10 @@ function renderData(root, data) {
   bar.style.background = col.main;
   bar.style.boxShadow = `0 0 8px ${col.glow}`;
 
-  // Stats: show msgs remaining / limit
+  // Stats: show remaining percentage
   const msgsEl = root.querySelector("#ctm-msgs");
-  if (data.limit > 0) {
-    const rem_count = Math.max(0, data.limit - data.used_count);
-    msgsEl.textContent = `${Math.round(rem_count)} / ${Math.round(data.limit)} msgs`;
-  } else {
-    msgsEl.textContent = `${pct.toFixed(1)}% used`;
-  }
+  const remPct = 100.0 - pct;
+  msgsEl.textContent = `${remPct.toFixed(1)}%`;
   msgsEl.style.color = col.main;
   root.querySelector("#ctm-reset").textContent = fmtReset(data.reset_at);
   if (data.org_name) root.querySelector("#ctm-org").textContent = data.org_name;
@@ -370,10 +366,7 @@ function renderData(root, data) {
   // Pill shows used % / remaining msgs count
   root.querySelector("#ctm-pill-dot").style.background = col.main;
   root.querySelector("#ctm-pill-dot").style.boxShadow = `0 0 6px ${col.glow}`;
-  root.querySelector("#ctm-pill-label").textContent =
-    data.limit > 0
-      ? `${Math.round(data.limit - data.used_count)}/${Math.round(data.limit)} msgs left`
-      : `${pct.toFixed(1)}% used`;
+  root.querySelector("#ctm-pill-label").textContent = `${remPct.toFixed(1)}% left`;
   root.querySelector("#ctm-pill-label").style.color = col.main;
 }
 

@@ -81,12 +81,9 @@ document.addEventListener("DOMContentLoaded", () => {
     pctEl.textContent = pct.toFixed(1) + "% used";
     pctEl.style.color = colors.text;
 
-    // Messages used
-    if (data.limit > 0) {
-      msgsEl.textContent = `${Math.round(data.used_count)} / ${Math.round(data.limit)} msgs`;
-    } else {
-      msgsEl.textContent = `${pct.toFixed(1)}% used`;
-    }
+    // Remaining Quota
+    const remPct = 100.0 - pct;
+    msgsEl.textContent = remPct.toFixed(1) + "%";
     msgsEl.style.color = colors.text;
 
     // Reset & org

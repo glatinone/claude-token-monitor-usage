@@ -19,6 +19,7 @@ POS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "widget_pos.
 # Sleek Dark Palette
 BG      = "#0A0A0D"
 SURFACE = "#121216"
+SURFACE_CARD = "#17171C"
 BORDER  = "#22222A"
 HOVER   = "#282834"
 TEXT    = "#F3F4F6"
@@ -75,8 +76,8 @@ def _save_pos(x: int, y: int) -> None:
 
 
 class TokenMonitorWidget:
-    W = 240
-    H = 142
+    W = 260
+    H = 320
 
     def __init__(self, fetch_fn, on_hide_callback=None):
         self._fetch_fn  = fetch_fn
@@ -106,7 +107,7 @@ class TokenMonitorWidget:
         self._build_ui()
         self.root.after(1200, self._safe_fetch)
 
-    # ── Build UI (modern, compact & dynamic) ─────────────────────────────
+    # ── Build UI (modern vertical card) ───────────────────────────────────
 
     def _build_ui(self):
         self._card = ctk.CTkFrame(
@@ -116,125 +117,141 @@ class TokenMonitorWidget:
         self._card.pack(fill="both", expand=True, padx=1, pady=1)
 
         # Header — always visible
-        self._hdr = ctk.CTkFrame(self._card, fg_color="transparent", height=26)
-        self._hdr.pack(fill="x", padx=12, pady=(8, 0))
+        self._hdr = ctk.CTkFrame(self._card, fg_color="transparent", height=34)
+        self._hdr.pack(fill="x", padx=14, pady=(12, 0))
+
+        icon_lbl = ctk.CTkLabel(
+            self._hdr, text="🔮", font=("Segoe UI", 16)
+        )
+        icon_lbl.pack(side="left", padx=(0, 6))
+
+        title_col = ctk.CTkFrame(self._hdr, fg_color="transparent")
+        title_col.pack(side="left")
 
         self._title_lbl = ctk.CTkLabel(
-            self._hdr, text="CLAUDE MONITOR",
-            font=("Segoe UI Semibold", 8), text_color=MUTED,
+            title_col, text="Claude Monitor",
+            font=("Segoe UI", 12, "bold"), text_color=TEXT, height=14
         )
-        self._title_lbl.pack(side="left")
+        self._title_lbl.pack(anchor="w")
+
+        self._sub_lbl = ctk.CTkLabel(
+            title_col, text="USAGE TRACKER",
+            font=("Segoe UI Semibold", 8), text_color=MUTED, height=10
+        )
+        self._sub_lbl.pack(anchor="w")
 
         self._collapse_btn = ctk.CTkButton(
             self._hdr, text="−",
-            width=18, height=18, corner_radius=9,
+            width=20, height=20, corner_radius=10,
             fg_color="transparent", hover_color=HOVER,
-            text_color=MUTED, font=("Segoe UI", 12, "bold"),
+            text_color=MUTED, font=("Segoe UI", 14, "bold"),
             command=self._toggle_collapse,
         )
         self._collapse_btn.pack(side="right")
 
         # Body — hidden when collapsed
         self._body = ctk.CTkFrame(self._card, fg_color="transparent")
-        self._body.pack(fill="x", padx=12, pady=(6, 0))
+        self._body.pack(fill="both", expand=True, padx=14, pady=(12, 0))
 
-        self._canvas = tk.Canvas(
-            self._body, width=68, height=68,
-            bg=SURFACE, highlightthickness=0,
+        # Progress Row
+        self._prog_wrap = ctk.CTkFrame(self._body, fg_color="transparent")
+        self._prog_wrap.pack(fill="x", pady=(0, 16))
+
+        lbl_row = ctk.CTkFrame(self._prog_wrap, fg_color="transparent")
+        lbl_row.pack(fill="x", pady=(0, 4))
+        
+        self._quota_lbl = ctk.CTkLabel(
+            lbl_row, text="QUOTA USED", font=("Segoe UI Semibold", 9), text_color=MUTED
         )
-        self._canvas.pack(side="left")
-        self._draw_arc(0.0, MUTED)
+        self._quota_lbl.pack(side="left")
 
-        stats_col = ctk.CTkFrame(self._body, fg_color="transparent")
-        stats_col.pack(side="left", padx=(14, 0), fill="both", expand=True)
-
-        def _stat(parent, label_text):
-            f = ctk.CTkFrame(parent, fg_color="transparent")
-            lbl = ctk.CTkLabel(
-                f, text=label_text, font=("Segoe UI Semibold", 8),
-                text_color=MUTED, anchor="w", height=10
-            )
-            lbl.pack(fill="x", pady=0)
-            val = ctk.CTkLabel(
-                f, text="—", font=("Segoe UI", 11, "bold"),
-                text_color=TEXT, anchor="w", height=14
-            )
-            val.pack(fill="x", pady=0)
-            return f, val
-
-        self._msgs_frame, self._msgs_val = _stat(stats_col, "MESSAGES LEFT")
-        self._msgs_frame.pack(fill="x", pady=(0, 2))
-
-        self._reset_frame, self._reset_val = _stat(stats_col, "RESET IN")
-        self._reset_frame.pack(fill="x", pady=(0, 2))
-
-        self._org_lbl = ctk.CTkLabel(
-            stats_col, text="—", font=("Segoe UI Semibold", 8),
-            text_color=MUTED, anchor="w", height=10
+        self._pct_val = ctk.CTkLabel(
+            lbl_row, text="—", font=("Segoe UI", 14, "bold"), text_color=GREEN
         )
-        self._org_lbl.pack(fill="x", pady=(2, 0))
-
-        # Progress bar — hidden when collapsed
-        self._bar_frame = ctk.CTkFrame(self._card, fg_color="transparent")
-        self._bar_frame.pack(fill="x", padx=12, pady=(6, 0))
+        self._pct_val.pack(side="right")
 
         self._progress = ctk.CTkProgressBar(
-            self._bar_frame, height=3, corner_radius=1.5, fg_color=BORDER,
+            self._prog_wrap, height=5, corner_radius=2.5, fg_color=BORDER,
         )
         self._progress.pack(fill="x")
         self._progress.set(0)
 
+        def _make_card(parent, label_text, is_full=False):
+            f = ctk.CTkFrame(parent, fg_color=SURFACE_CARD, border_color=BORDER, border_width=1, corner_radius=10)
+            if is_full:
+                f.pack(fill="x", pady=(0, 8))
+            else:
+                f.pack(side="left", fill="both", expand=True)
+            lbl = ctk.CTkLabel(
+                f, text=label_text, font=("Segoe UI Semibold", 9),
+                text_color=MUTED, anchor="w"
+            )
+            lbl.pack(fill="x", padx=12, pady=(10, 0))
+            val = ctk.CTkLabel(
+                f, text="—", font=("Segoe UI", 13, "bold"),
+                text_color=TEXT, anchor="w"
+            )
+            val.pack(fill="x", padx=12, pady=(0, 10))
+            return f, val
+
+        # Cards
+        self._cards_frame = ctk.CTkFrame(self._body, fg_color="transparent")
+        self._cards_frame.pack(fill="x", pady=(0, 16))
+
+        self._rem_frame, self._msgs_val = _make_card(self._cards_frame, "QUOTA REMAINING", is_full=True)
+
+        row2 = ctk.CTkFrame(self._cards_frame, fg_color="transparent")
+        row2.pack(fill="x")
+
+        self._reset_frame, self._reset_val = _make_card(row2, "RESETS IN", is_full=False)
+        self._reset_frame.pack_configure(padx=(0, 4))
+        
+        self._org_frame, self._org_lbl = _make_card(row2, "ORGANIZATION", is_full=False)
+        self._org_frame.pack_configure(padx=(4, 0))
+        self._org_lbl.configure(font=("Segoe UI", 11, "bold")) # slightly smaller for long names
+
+        # Sync Button
+        self._sync_btn = ctk.CTkButton(
+            self._body, text="⟳ Sync Now",
+            height=34, corner_radius=10,
+            fg_color="#6366f1", hover_color="#4f46e5",
+            text_color="#ffffff", font=("Segoe UI", 12, "bold"),
+            command=self._manual_sync,
+        )
+        self._sync_btn.pack(fill="x", pady=(0, 12))
+
         # Footer — always visible
         self._ftr = ctk.CTkFrame(self._card, fg_color="transparent")
-        self._ftr.pack(fill="x", padx=12, pady=(4, 6))
+        self._ftr.pack(fill="x", padx=14, pady=(4, 10))
+
+        sync_row = ctk.CTkFrame(self._ftr, fg_color="transparent")
+        sync_row.pack(anchor="center")
 
         self._dot_lbl = ctk.CTkLabel(
-            self._ftr, text="●", font=("Segoe UI", 7), text_color=MUTED,
+            sync_row, text="●", font=("Segoe UI", 8), text_color=MUTED,
         )
-        self._dot_lbl.pack(side="left")
+        self._dot_lbl.pack(side="left", padx=(0, 4))
 
         self._footer_lbl = ctk.CTkLabel(
-            self._ftr, text=" Starting…", font=("Segoe UI", 8), text_color=MUTED,
+            sync_row, text="Starting…", font=("Segoe UI Semibold", 9), text_color=MUTED,
         )
         self._footer_lbl.pack(side="left")
 
-        self._sync_btn = ctk.CTkButton(
-            self._ftr, text="↺",
-            width=20, height=16, corner_radius=4,
-            fg_color="transparent", hover_color=HOVER,
-            text_color=MUTED, font=("Segoe UI", 11),
-            command=self._manual_sync,
+        self._disc_lbl = ctk.CTkLabel(
+            self._ftr, text="Unofficial client. Not affiliated with Anthropic.",
+            font=("Segoe UI", 8), text_color=MUTED, height=10
         )
-        self._sync_btn.pack(side="right")
+        self._disc_lbl.pack(anchor="center", pady=(4, 0))
 
         # Bind drag to non-button widgets
-        for w in (self._card, self._hdr, self._title_lbl,
-                  self._body, self._canvas, stats_col,
-                  self._bar_frame, self._ftr, self._dot_lbl, self._footer_lbl):
+        for w in (self._card, self._hdr, icon_lbl, title_col, self._title_lbl, self._sub_lbl,
+                  self._body, self._prog_wrap, lbl_row, self._quota_lbl, self._pct_val,
+                  self._cards_frame, self._rem_frame, self._msgs_val, row2,
+                  self._reset_frame, self._reset_val, self._org_frame, self._org_lbl,
+                  self._ftr, sync_row, self._dot_lbl, self._footer_lbl, self._disc_lbl):
             w.bind("<Button-1>",        self._drag_start, add="+")
             w.bind("<B1-Motion>",       self._drag_move,  add="+")
             w.bind("<ButtonRelease-1>", self._drag_end,   add="+")
-
-    # ── Arc ───────────────────────────────────────────────────────────────
-
-    def _draw_arc(self, pct: float, color: str):
-        try:
-            c = self._canvas
-            c.delete("all")
-            cx = cy = 34
-            r  = 24
-            c.create_oval(cx-r, cy-r, cx+r, cy+r, outline=BORDER, width=4, fill="")
-            if pct > 0.5:
-                ext = min(pct / 100 * 359.9, 359.9)
-                c.create_arc(cx-r, cy-r, cx+r, cy+r,
-                             start=90, extent=-ext,
-                             outline=color, width=4, style="arc")
-            c.create_text(cx, cy-5, text=f"{int(round(pct))}%",
-                          fill=color, font=("Segoe UI", 12, "bold"), anchor="center")
-            c.create_text(cx, cy+10, text="USED",
-                          fill=MUTED, font=("Segoe UI", 7, "bold"), anchor="center")
-        except Exception as e:
-            logger.debug(f"Arc draw: {e}")
 
     # ── Render ────────────────────────────────────────────────────────────
 
@@ -243,28 +260,16 @@ class TokenMonitorWidget:
             self._last_data = data
             pct   = max(0.0, min(100.0, float(data.get("percentage", 0))))
             color = _col(pct)
-            limit = int(data.get("limit", 0))
-            used  = int(data.get("used_count", 0))
 
-            self._draw_arc(pct, color)
+            self._pct_val.configure(text=f"{pct:.1f}% used", text_color=color)
 
-            # Unpack all to ensure correct ordering
-            self._msgs_frame.pack_forget()
-            self._reset_frame.pack_forget()
-            self._org_lbl.pack_forget()
+            rem_pct = 100.0 - pct
+            self._msgs_val.configure(text=f"{rem_pct:.1f}%", text_color=color)
 
-            if limit > 0:
-                self._msgs_frame.pack(fill="x", pady=(0, 2))
-                rem_msgs = max(0, limit - used)
-                self._msgs_val.configure(text=f"{rem_msgs} / {limit} msgs", text_color=color)
-
-            self._reset_frame.pack(fill="x", pady=(0, 2))
-            
             org_name = data.get("org_name", "")
-            if len(org_name) > 24:
-                org_name = org_name[:21] + "..."
+            if len(org_name) > 18:
+                org_name = org_name[:15] + "..."
             self._org_lbl.configure(text=org_name)
-            self._org_lbl.pack(fill="x", pady=(2, 0))
 
             self._reset_val.configure(text=_fmt_reset(data.get("reset_at", "")))
 
@@ -273,9 +278,10 @@ class TokenMonitorWidget:
 
             self._dot_lbl.configure(text_color=GREEN)
             self._footer_lbl.configure(
-                text=f" Synced {_fmt_synced(data.get('synced_at', ''))}",
+                text=f"Synced {_fmt_synced(data.get('synced_at', ''))}",
                 text_color=MUTED,
             )
+            self._sync_btn.configure(state="normal", text="⟳ Sync Now")
         except Exception as e:
             logger.warning(f"_render: {e}")
 
@@ -290,8 +296,9 @@ class TokenMonitorWidget:
             try:
                 self._dot_lbl.configure(text_color=RED)
                 self._footer_lbl.configure(
-                    text=f" {msg[:40]}", text_color=RED,
+                    text=f"{msg[:40]}", text_color=RED,
                 )
+                self._sync_btn.configure(state="normal", text="⟳ Sync Now")
             except Exception:
                 pass
         try:
@@ -320,7 +327,8 @@ class TokenMonitorWidget:
             if self._poll_job:
                 self.root.after_cancel(self._poll_job)
                 self._poll_job = None
-            self._footer_lbl.configure(text=" Syncing…", text_color=MUTED)
+            self._sync_btn.configure(state="disabled", text="Syncing...")
+            self._footer_lbl.configure(text="Syncing…", text_color=MUTED)
             self._dot_lbl.configure(text_color=MUTED)
             self._safe_fetch()
         except Exception as e:
@@ -333,18 +341,14 @@ class TokenMonitorWidget:
             self._collapsed = not self._collapsed
             if self._collapsed:
                 self._body.pack_forget()
-                self._bar_frame.pack_forget()
                 self._ftr.pack_forget()
                 self._collapse_btn.configure(text="+")
-                self.root.geometry(f"{self.W}x36")
+                self.root.geometry(f"{self.W}x58")
             else:
-                self._body.pack(fill="x", padx=12, pady=(6, 0))
-                self._bar_frame.pack(fill="x", padx=12, pady=(6, 0))
-                self._ftr.pack(fill="x", padx=12, pady=(4, 6))
+                self._body.pack(fill="both", expand=True, padx=14, pady=(12, 0))
+                self._ftr.pack(fill="x", padx=14, pady=(4, 10))
                 self._collapse_btn.configure(text="−")
                 self.root.geometry(f"{self.W}x{self.H}")
-                if self._last_data:
-                    self._render(self._last_data)
         except Exception as e:
             logger.warning(f"toggle_collapse: {e}")
 
