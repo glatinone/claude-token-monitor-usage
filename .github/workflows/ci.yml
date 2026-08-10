@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  lint-and-smoke-test:
+    name: Lint & Smoke Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install project dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install lint tooling
+        run: pip install ruff
+
+      - name: Lint with ruff
+        run: ruff check .
+
+      # NOTE: This is a desktop GUI application (customtkinter widget, system
+      # tray icon via pystray, etc.). It cannot be launched or exercised in a
+      # headless CI runner, so we intentionally do NOT attempt to `import` or
+      # run app.main / app.widget / app.tray here — doing so would require a
+      # display server / tray host and would not reflect real GUI behavior
+      # anyway. Instead we do a static syntax/compile check on every Python
+      # file to catch syntax errors, bad indentation, etc. Actual UI
+      # behavior must be verified manually (see CONTRIBUTING.md).
+      - name: Smoke syntax check (py_compile)
+        run: python -m compileall -q app
+
+      - name: Validate extension manifest.json (if present)
+        run: |
+          if [ -f "extension/manifest.json" ]; then
+            python -c "import json; json.load(open('extension/manifest.json', encoding='utf-8')); print('extension/manifest.json is valid JSON')"
+          else
+            echo "No extension/manifest.json found, skipping."
+          fi
