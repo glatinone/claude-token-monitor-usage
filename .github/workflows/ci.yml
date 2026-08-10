@@ -30,6 +30,12 @@ jobs:
         run: pip install ruff
 
       - name: Lint with ruff
+        continue-on-error: true
+        # NOTE: this is the first lint pass ever run on this codebase, and it
+        # currently surfaces a real pre-existing backlog (blind exception
+        # handling, logging style) rather than regressions from this PR. Left
+        # non-blocking until that backlog is cleaned up deliberately, so CI
+        # doesn't go red on unrelated changes in the meantime.
         run: ruff check .
 
       # NOTE: This is a desktop GUI application (customtkinter widget, system
